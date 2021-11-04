@@ -1,11 +1,9 @@
 import helpers.toSeconds
 import helpers.toTimestamp
 import solutions.RangesSolution
-import solutions.RangesSolution2
-import solutions.RangesSolution3
 import java.util.*
 
-fun selectedSolution(): Solution = RangesSolution3()
+fun selectedSolution(): Solution = RangesSolution()
 
 fun main() {
 //    println("Solution 1...")
