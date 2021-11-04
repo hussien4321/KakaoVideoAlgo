@@ -112,30 +112,13 @@ class RangesSolution : Solution, DebuggingTimer() {
             if(timeTillNextSubsectionStart == 0) startIndex++
             if(timeTillNextSubsectionEnd == 0) endIndex++
 
-            val nextCutAmount = kotlin.math.min(allWatchDurations[startIndex].endTime - startTimePointer, allWatchDurations[endIndex].endTime - endTimePointer)
+            val nextCutAmount = kotlin.math.min(timeTillNextSubsectionStart, timeTillNextSubsectionEnd)
 
             //trim off the minimum amount from the current subsection
             startTimePointer+=nextCutAmount
             endTimePointer+=nextCutAmount
 
-            if(startTimePointer > allWatchDurations[startIndex].endTime) {
-                startIndex++
-                for (index in startIndex..allWatchDurations.size) {
-                    if(allWatchDurations[index].isInRange(startTimePointer)) {
-                        startIndex = index
-                        break
-                    }
-                }
-            }
-            if(endTimePointer > allWatchDurations[endIndex].endTime) {
-                endIndex++
-                for (index in endIndex..allWatchDurations.size) {
-                    if(allWatchDurations[index].isInRange(endTimePointer)) {
-                        endIndex = index
-                        break
-                    }
-                }
-            }
+            updateIndicesToMatchPointers()
 
             //save new score if higher than previous, if not move on
             val currentSubsectionScore = currentSubsectionScore
@@ -146,5 +129,26 @@ class RangesSolution : Solution, DebuggingTimer() {
         }
 
         return bestSubsectionTime
+    }
+
+    private fun updateIndicesToMatchPointers() {
+        if (startTimePointer > allWatchDurations[startIndex].endTime) {
+            startIndex++
+            for (index in startIndex.until(allWatchDurations.size)) {
+                if (allWatchDurations[index].isInRange(startTimePointer)) {
+                    startIndex = index
+                    break
+                }
+            }
+        }
+        if (endTimePointer > allWatchDurations[endIndex].endTime) {
+            endIndex++
+            for (index in endIndex.until(allWatchDurations.size)) {
+                if(allWatchDurations[index].isInRange(endTimePointer)) {
+                    endIndex = index
+                    break
+                }
+            }
+        }
     }
 }
