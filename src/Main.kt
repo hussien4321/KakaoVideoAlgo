@@ -30,7 +30,7 @@ fun main() {
 
     val duration = "99:59:59"
     println("Solution 5...")
-    selectedSolution().solutionWithTimeMeasurement(duration, "25:00:00", generateDurations(duration, 15000))
+    selectedSolution().solutionWithTimeMeasurement(duration, "41:01:00", generateDurations(duration, 100000))
 }
 
 fun generateDurations(duration: String, logs: Int): Array<String> {

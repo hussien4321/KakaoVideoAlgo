@@ -14,7 +14,6 @@ class RangesSolution : Solution, DebuggingTimer() {
 
 
 
-    //합계: 71.0 / 100.0 - Simplify point accumulation by accumlating them during creation, to avoid cancelling start/ends (net=0) and overlaying start/ends (net=+>1/-<1)
     override fun solution(play_time: String, adv_time: String, logs: Array<String>): String {
         initValues(play_time, adv_time, logs)
 
@@ -75,84 +74,77 @@ class RangesSolution : Solution, DebuggingTimer() {
     }
 
 
+    var startTimePointer = 0
+    var endTimePointer = advTimeSeconds
+
+    var startIndex = 0
+    var endIndex = 0
+
+    private val currentSubsectionScore: Int get() {
+        var score = 0
+        for (index in startIndex..endIndex) {
+            val watchDuration = allWatchDurations[index]
+            var startTime = if(index == startIndex) startTimePointer else watchDuration.startTime
+            var endTime = if(index == endIndex) endTimePointer else watchDuration.endTime
+
+            score += (endTime - startTime) * watchDuration.viewCount
+        }
+        return score
+    }
 
     private fun calculateHighestScoreTime(): Int {
-        var currentSubsection = trimAllWatchDurations(advTimeSeconds)
+        endTimePointer = advTimeSeconds
+        for (index in startIndex.until(allWatchDurations.size)) {
+            if(allWatchDurations[index].isInRange(endTimePointer)) {
+                endIndex = index
+                break
+            }
+        }
 
-        var bestSubsectionScore = currentSubsection.score
-        var bestSubsectionTime = currentSubsection.first().startTime
+        var bestSubsectionScore = currentSubsectionScore
+        var bestSubsectionTime = startTimePointer
 
-        var i = 1
-
-        while(allWatchDurations.isNotEmpty()) {
+        while(endTimePointer != playTimeSeconds) {
             //figure out the minimum jump we can take to observe a different result, skipping intermediate ones
-            val nextCutAmount = kotlin.math.min(currentSubsection.timeTillNextSubsection(), allWatchDurations.timeTillNextSubsection())
+            val timeTillNextSubsectionStart = allWatchDurations[startIndex].endTime - startTimePointer
+            val timeTillNextSubsectionEnd = allWatchDurations[endIndex].endTime - endTimePointer
+
+            if(timeTillNextSubsectionStart == 0) startIndex++
+            if(timeTillNextSubsectionEnd == 0) endIndex++
+
+            val nextCutAmount = kotlin.math.min(allWatchDurations[startIndex].endTime - startTimePointer, allWatchDurations[endIndex].endTime - endTimePointer)
 
             //trim off the minimum amount from the current subsection
-            currentSubsection = currentSubsection.split(nextCutAmount).second
-            //add the same amount from the remaining watch durations
-            currentSubsection.addAll(trimAllWatchDurations(nextCutAmount))
+            startTimePointer+=nextCutAmount
+            endTimePointer+=nextCutAmount
+
+            if(startTimePointer > allWatchDurations[startIndex].endTime) {
+                startIndex++
+                for (index in startIndex..allWatchDurations.size) {
+                    if(allWatchDurations[index].isInRange(startTimePointer)) {
+                        startIndex = index
+                        break
+                    }
+                }
+            }
+            if(endTimePointer > allWatchDurations[endIndex].endTime) {
+                endIndex++
+                for (index in endIndex..allWatchDurations.size) {
+                    if(allWatchDurations[index].isInRange(endTimePointer)) {
+                        endIndex = index
+                        break
+                    }
+                }
+            }
 
             //save new score if higher than previous, if not move on
-            val currentSubsectionScore = currentSubsection.score
+            val currentSubsectionScore = currentSubsectionScore
             if(currentSubsectionScore > bestSubsectionScore) {
                 bestSubsectionScore = currentSubsectionScore
-                bestSubsectionTime = currentSubsection.first().startTime
+                bestSubsectionTime = startTimePointer
             }
-            i++
         }
 
         return bestSubsectionTime
     }
-
-    private fun trimAllWatchDurations(trimAmount: Int): MutableList<WatchDuration> {
-        val allWatchDurationsSplit = allWatchDurations.split(trimAmount)
-
-        allWatchDurations = allWatchDurationsSplit.second
-        return allWatchDurationsSplit.first
-    }
-
-
-    private fun MutableList<WatchDuration>.split(splitAmount: Int): Pair<MutableList<WatchDuration>, MutableList<WatchDuration>>{
-        var remainingTrimAmount = splitAmount
-        var leftWatchDurations: MutableList<WatchDuration> = mutableListOf()
-        var rightWatchDurations: MutableList<WatchDuration> = this
-
-
-        while(remainingTrimAmount > 0) {
-            val nextWatchDuration= rightWatchDurations.removeAt(0)
-
-            //check if this entire watch duration can be included in this trimmed subsection
-            if(nextWatchDuration.totalWatchTime <= remainingTrimAmount) {
-                leftWatchDurations.add(nextWatchDuration)
-            }
-            //or else we will cut it in 2 and only take part of it
-            else {
-                var nextWatchDurationSplit = nextWatchDuration.splitWatchDuration(remainingTrimAmount)
-                leftWatchDurations.add(nextWatchDurationSplit.first)
-                rightWatchDurations.add(0, nextWatchDurationSplit.second)
-            }
-            remainingTrimAmount -= leftWatchDurations.last().totalWatchTime
-        }
-
-        return Pair(leftWatchDurations, rightWatchDurations)
-    }
-
-
-    private fun WatchDuration.splitWatchDuration(splitAmount: Int): Pair<WatchDuration, WatchDuration> {
-        return Pair(
-            first = WatchDuration(
-                Duration(this.startTime, this.startTime + splitAmount), this.viewCount
-            ),
-            second = WatchDuration(
-                Duration(this.startTime + splitAmount, this.endTime), this.viewCount
-            )
-        )
-    }
-
-    private fun List<WatchDuration>.timeTillNextSubsection(): Int = this.first().endTime - this.first().startTime
-
-    private val List<WatchDuration>.score: Int
-        get() = this.sumBy { it.calculateScore() }
-
 }
