@@ -4,13 +4,13 @@ import helpers.toSeconds
 import helpers.toTimestamp
 import Solution
 import helpers.DebuggingTimer
-import models.*
+import java.util.Map
 
 class RangesSolution : Solution, DebuggingTimer() {
     private var playTimeSeconds: Int = 0
     private var advTimeSeconds: Int = 0
-    private var allWatchDurations: MutableList<WatchDuration> = mutableListOf()
     private val viewingPointsMap = HashMap<Int, Int>()
+    private val rangesPointsMap = HashMap<Int, Int>()
 
 
 
@@ -52,7 +52,8 @@ class RangesSolution : Solution, DebuggingTimer() {
         var currentViewCount = 0
         var currentPointer = 0
 
-        val viewingPoints = viewingPointsMap.entries.sortedBy { it.key }.filter { it.value != 0 }
+        var viewingPoints = viewingPointsMap.entries.sortedBy { it.key }.filter { it.value != 0 }
+
         for (viewingPointEntry in viewingPoints) {
 
             val timeStamp = viewingPointEntry.key
@@ -60,14 +61,12 @@ class RangesSolution : Solution, DebuggingTimer() {
 
             //End current section at the start of each new point, recording the count at that moment
             if(currentPointer != timeStamp) {
-                allWatchDurations.add(WatchDuration(
-                    duration = Duration(currentPointer, timeStamp),
-                    viewCount = currentViewCount
-                ))
+                for(i in currentPointer..timeStamp) {
+                    rangesPointsMap[i] = currentViewCount
+                }
             }
 
             currentViewCount += viewCount
-
             //update point for next section
             currentPointer = timeStamp
         }
@@ -75,80 +74,31 @@ class RangesSolution : Solution, DebuggingTimer() {
 
 
     var startTimePointer = 0
-    var endTimePointer = advTimeSeconds
+    private val endTimePointer: Int get() = startTimePointer + advTimeSeconds
 
-    var startIndex = 0
-    var endIndex = 0
-
-    private val currentSubsectionScore: Int get() {
-        var score = 0
-        for (index in startIndex..endIndex) {
-            val watchDuration = allWatchDurations[index]
-            var startTime = if(index == startIndex) startTimePointer else watchDuration.startTime
-            var endTime = if(index == endIndex) endTimePointer else watchDuration.endTime
-
-            score += (endTime - startTime) * watchDuration.viewCount
-        }
-        return score
-    }
 
     private fun calculateHighestScoreTime(): Int {
-        endTimePointer = advTimeSeconds
-        for (index in startIndex.until(allWatchDurations.size)) {
-            if(allWatchDurations[index].isInRange(endTimePointer)) {
-                endIndex = index
-                break
-            }
-        }
+        var currentScore = (startTimePointer.until(endTimePointer)).map{
+            rangesPointsMap[it]  ?: 0
+        }.sumBy { it }
 
-        var bestSubsectionScore = currentSubsectionScore
+        var bestSubsectionScore = currentScore
         var bestSubsectionTime = startTimePointer
 
-        while(endTimePointer != playTimeSeconds) {
-            //figure out the minimum jump we can take to observe a different result, skipping intermediate ones
-            val timeTillNextSubsectionStart = allWatchDurations[startIndex].endTime - startTimePointer
-            val timeTillNextSubsectionEnd = allWatchDurations[endIndex].endTime - endTimePointer
+        while(endTimePointer <= playTimeSeconds) {
 
-            if(timeTillNextSubsectionStart == 0) startIndex++
-            if(timeTillNextSubsectionEnd == 0) endIndex++
+            currentScore-=rangesPointsMap[startTimePointer]?:0
+            currentScore+=rangesPointsMap[endTimePointer]?:0
 
-            val nextCutAmount = kotlin.math.min(timeTillNextSubsectionStart, timeTillNextSubsectionEnd)
+            startTimePointer++
 
-            //trim off the minimum amount from the current subsection
-            startTimePointer+=nextCutAmount
-            endTimePointer+=nextCutAmount
-
-            updateIndicesToMatchPointers()
-
-            //save new score if higher than previous, if not move on
-            val currentSubsectionScore = currentSubsectionScore
-            if(currentSubsectionScore > bestSubsectionScore) {
-                bestSubsectionScore = currentSubsectionScore
+            if(currentScore > bestSubsectionScore) {
+                bestSubsectionScore = currentScore
                 bestSubsectionTime = startTimePointer
             }
+
         }
 
         return bestSubsectionTime
-    }
-
-    private fun updateIndicesToMatchPointers() {
-        if (startTimePointer > allWatchDurations[startIndex].endTime) {
-            startIndex++
-            for (index in startIndex.until(allWatchDurations.size)) {
-                if (allWatchDurations[index].isInRange(startTimePointer)) {
-                    startIndex = index
-                    break
-                }
-            }
-        }
-        if (endTimePointer > allWatchDurations[endIndex].endTime) {
-            endIndex++
-            for (index in endIndex.until(allWatchDurations.size)) {
-                if(allWatchDurations[index].isInRange(endTimePointer)) {
-                    endIndex = index
-                    break
-                }
-            }
-        }
     }
 }
