@@ -5,12 +5,12 @@ import helpers.toTimestamp
 import Solution
 import helpers.DebuggingTimer
 
-class RangesSolution : Solution, DebuggingTimer() {
+class RangesSolution : Solution {
 
-    private var playTimeSeconds: Int = 0
-    private var advTimeSeconds: Int = 0
-    private val viewingPointsMap = HashMap<Int, Int>()
-    private val rangesPointsMap = HashMap<Int, Int>()
+    private var playTimeSeconds: Long = 0
+    private var advTimeSeconds: Long = 0
+    private val viewingPointsMap = HashMap<Long, Long>()
+    private val rangesPointsMap = HashMap<Long, Long>()
 
     override fun solution(play_time: String, adv_time: String, logs: Array<String>): String {
         initValues(play_time, adv_time, logs)
@@ -44,10 +44,10 @@ class RangesSolution : Solution, DebuggingTimer() {
     }
 
     private fun createWatchDurations() {
-        var currentViewCount = 0
-        var currentPointer = 0
+        var currentViewCount = 0L
+        var currentPointer = 0L
 
-        var viewingPoints = viewingPointsMap.entries.sortedBy { it.key }.filter { it.value != 0 }
+        var viewingPoints = viewingPointsMap.entries.sortedBy { it.key }.filter { it.value != 0L }
 
         for (viewingPointEntry in viewingPoints) {
             val timeStamp = viewingPointEntry.key
@@ -66,14 +66,14 @@ class RangesSolution : Solution, DebuggingTimer() {
         }
     }
 
-    private var startTimePointer = 0
-    private val endTimePointer: Int get() = startTimePointer + advTimeSeconds
+    private var startTimePointer = 0L
+    private val endTimePointer: Long get() = startTimePointer + advTimeSeconds
 
-    private fun calculateHighestScoreTime(): Int {
-        var currentScore = (startTimePointer.until(endTimePointer)).sumBy{ rangesPointsMap[it]  ?: 0 }
+    private fun calculateHighestScoreTime(): Long {
+        var currentScore: Long = (startTimePointer.until(endTimePointer)).map { rangesPointsMap[it]?:0L }.sum()
 
         var bestSubsectionScore = currentScore
-        var bestSubsectionTime = 0
+        var bestSubsectionTime = 0L
 
         for (startTime in 1..playTimeSeconds-advTimeSeconds) {
             val prevStartTime = startTime-1

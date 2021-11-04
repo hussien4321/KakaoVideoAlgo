@@ -42,8 +42,8 @@ fun main() {
 fun generateLogs(duration: String, logs: Int): Array<String> {
     val durationSeconds = duration.toSeconds()
     return (1..logs).map {
-        val randomDuration = Random().nextInt(durationSeconds-1)
-        val startTime = Random().nextInt(durationSeconds - randomDuration)
+        val randomDuration = Random().nextInt((durationSeconds-1).toInt()).toLong()
+        val startTime = Random().nextInt((durationSeconds - randomDuration).toInt()).toLong()
         var endTime = startTime+randomDuration
         "${startTime.toTimestamp()}-${endTime.toTimestamp()}"
     }.toTypedArray()

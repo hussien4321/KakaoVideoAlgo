@@ -10,13 +10,13 @@ class HashMapSolution : Solution {
     override fun solution(play_time: String, adv_time: String, logs: Array<String>): String {
         var playTimeSeconds = play_time.toSeconds()
         var advTimeSeconds = adv_time.toSeconds()
-        var logTimes: List<Pair<Int,Int>> = logs.map{ log ->
+        var logTimes: List<Pair<Long,Long>> = logs.map{ log ->
             val section = log.split("-")
             Pair(section[0].toSeconds(), section[1].toSeconds())
         }
 
         //1. hashmap 만들고
-        var timeHashmap : HashMap<Int, Int> = HashMap<Int, Int> ()
+        var timeHashmap : HashMap<Long, Long> = HashMap<Long, Long> ()
 
         //2. log 위치 마다 어올리는 부분 +1 시키고
         for(log in logTimes) {
@@ -26,8 +26,8 @@ class HashMapSolution : Solution {
         }
 
         //3. 위치 1초 올라가면서 지난 구간 점수 기억 하고 새로운 변환 있는지만 확인 하기
-        var highestScore = 0
-        var highestScoreTime = 0
+        var highestScore = 0L
+        var highestScoreTime = 0L
         for(currentTime in 0..advTimeSeconds) {
             highestScore += timeHashmap.get(currentTime) ?: 0
         }

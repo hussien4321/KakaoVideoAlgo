@@ -1,11 +1,11 @@
 package models
 
 class WatchDuration(val duration: Duration, val viewCount: Int){
-    val startTime: Int = duration.startTime
-    val endTime: Int = duration.endTime
-    fun isInRange(time: Int): Boolean = time in startTime..endTime
+    val startTime: Long = duration.startTime
+    val endTime: Long= duration.endTime
+    fun isInRange(time: Long): Boolean = time in startTime..endTime
 
-    private val totalWatchTime: Int = endTime-startTime
-    val score: Int = totalWatchTime * viewCount
+    private val totalWatchTime: Long = endTime-startTime
+    val score: Long = totalWatchTime * viewCount
     override fun toString(): String = "\n       WD: < $duration, V:$viewCount, L:$totalWatchTime, S:$score >"
 }
