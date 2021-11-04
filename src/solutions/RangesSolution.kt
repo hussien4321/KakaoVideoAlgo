@@ -4,25 +4,20 @@ import helpers.toSeconds
 import helpers.toTimestamp
 import Solution
 import helpers.DebuggingTimer
-import java.util.Map
 
 class RangesSolution : Solution, DebuggingTimer() {
+
     private var playTimeSeconds: Int = 0
     private var advTimeSeconds: Int = 0
     private val viewingPointsMap = HashMap<Int, Int>()
     private val rangesPointsMap = HashMap<Int, Int>()
 
-
-
     override fun solution(play_time: String, adv_time: String, logs: Array<String>): String {
         initValues(play_time, adv_time, logs)
 
-        startDebuggingTimer()
         createWatchDurations()
-        stopDebuggingTimer("createWatchDurations()")
 
         var highestScoreTime = calculateHighestScoreTime()
-        stopDebuggingTimer("calculateHighestScoreTime()")
 
         return highestScoreTime.toTimestamp()
     }
@@ -55,13 +50,12 @@ class RangesSolution : Solution, DebuggingTimer() {
         var viewingPoints = viewingPointsMap.entries.sortedBy { it.key }.filter { it.value != 0 }
 
         for (viewingPointEntry in viewingPoints) {
-
             val timeStamp = viewingPointEntry.key
             val viewCount = viewingPointEntry.value
 
             //End current section at the start of each new point, recording the count at that moment
             if(currentPointer != timeStamp) {
-                for(i in currentPointer..timeStamp) {
+                for(i in currentPointer.until(timeStamp)) {
                     rangesPointsMap[i] = currentViewCount
                 }
             }
@@ -72,29 +66,25 @@ class RangesSolution : Solution, DebuggingTimer() {
         }
     }
 
-
-    var startTimePointer = 0
+    private var startTimePointer = 0
     private val endTimePointer: Int get() = startTimePointer + advTimeSeconds
 
-
     private fun calculateHighestScoreTime(): Int {
-        var currentScore = (startTimePointer.until(endTimePointer)).map{
-            rangesPointsMap[it]  ?: 0
-        }.sumBy { it }
+        var currentScore = (startTimePointer.until(endTimePointer)).sumBy{ rangesPointsMap[it]  ?: 0 }
 
         var bestSubsectionScore = currentScore
-        var bestSubsectionTime = startTimePointer
+        var bestSubsectionTime = 0
 
-        while(endTimePointer <= playTimeSeconds) {
+        for (startTime in 1..playTimeSeconds-advTimeSeconds) {
+            val prevStartTime = startTime-1
+            val newEndTime = prevStartTime+advTimeSeconds
 
-            currentScore-=rangesPointsMap[startTimePointer]?:0
-            currentScore+=rangesPointsMap[endTimePointer]?:0
-
-            startTimePointer++
+            currentScore-=rangesPointsMap[prevStartTime]?:0
+            currentScore+=rangesPointsMap[newEndTime]?:0
 
             if(currentScore > bestSubsectionScore) {
                 bestSubsectionScore = currentScore
-                bestSubsectionTime = startTimePointer
+                bestSubsectionTime = startTime
             }
 
         }

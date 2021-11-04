@@ -4,7 +4,7 @@ import Solution
 import helpers.toSeconds
 import helpers.toTimestamp
 
-class HashmapSolution : Solution {
+class HashMapSolution : Solution {
 
     //힙계: 58.1 / 100.0
     override fun solution(play_time: String, adv_time: String, logs: Array<String>): String {
@@ -47,7 +47,6 @@ class HashmapSolution : Solution {
 
             previousScore = currentScore
         }
-
         return highestScoreTime.toTimestamp()
     }
 }

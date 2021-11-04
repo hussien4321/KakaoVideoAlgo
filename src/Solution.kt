@@ -16,6 +16,7 @@ interface Solution {
         } else {
             println("FAILED!!! Expected:$exp_time but received $solution")
         }
+        println()
         return solution
     }
 }

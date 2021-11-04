@@ -6,6 +6,12 @@ import java.util.*
 fun selectedSolution(): Solution = RangesSolution()
 
 fun main() {
+    println("Solution 0...")
+    selectedSolution().solutionWithExpectedResult("00:00:11", "00:00:05", arrayOf("00:00:03-00:00:07", "00:00:01-00:00:04",
+        "00:00:06-00:00:09", "00:00:09-00:00:10",
+        "00:00:09-00:00:10", "00:00:09-00:00:10",
+        "00:00:09-00:00:10", "00:00:09-00:00:10"), "00:00:05")
+
     println("Solution 1...")
     selectedSolution().solutionWithExpectedResult("02:03:55", "00:14:15", arrayOf("01:20:15-01:45:14", "00:25:50-00:48:29",
         "00:40:31-01:00:00", "01:37:44-02:02:30",
@@ -30,10 +36,10 @@ fun main() {
 
     val duration = "99:59:59"
     println("Solution 5...")
-    selectedSolution().solutionWithTimeMeasurement(duration, "30:00:00", generateDurations(duration, 300000))
+    selectedSolution().solutionWithTimeMeasurement(duration, "45:00:00", generateLogs(duration, 300000))
 }
 
-fun generateDurations(duration: String, logs: Int): Array<String> {
+fun generateLogs(duration: String, logs: Int): Array<String> {
     val durationSeconds = duration.toSeconds()
     return (1..logs).map {
         val randomDuration = Random().nextInt(durationSeconds-1)
